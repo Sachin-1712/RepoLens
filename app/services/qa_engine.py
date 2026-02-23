@@ -105,11 +105,11 @@ class QAEngine:
             SELECT
                 id, file_path, chunk_text, chunk_type,
                 line_start, line_end, language,
-                1 - (embedding <=> :embedding::vector) AS similarity
+                1 - (embedding <=> CAST(:embedding AS vector)) AS similarity
             FROM code_chunks
             WHERE repository_id = :repo_id
               AND embedding IS NOT NULL
-            ORDER BY embedding <=> :embedding::vector
+            ORDER BY embedding <=> CAST(:embedding AS vector)
             LIMIT :top_k
             """
         )
@@ -169,7 +169,7 @@ ANSWER:"""
     async def _generate_answer(self, prompt: str) -> str:
         """Call Ollama API for text generation."""
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=180.0) as client:
                 response = await client.post(
                     f"{settings.OLLAMA_BASE_URL}/api/generate",
                     json={

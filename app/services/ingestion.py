@@ -107,7 +107,7 @@ class IngestionService:
         ".py", ".js", ".ts", ".jsx", ".tsx",
         ".java", ".cpp", ".c", ".h", ".hpp",
         ".go", ".rs", ".rb", ".php", ".swift",
-        ".kt", ".scala", ".cs",
+        ".kt", ".scala", ".cs", ".md", ".txt",
     }
 
     IGNORED_DIRS = {
@@ -129,7 +129,7 @@ class IngestionService:
 
             for fname in filenames:
                 fpath = Path(dirpath) / fname
-                if fpath.suffix in cls.SUPPORTED_EXTENSIONS:
+                if fpath.suffix in cls.SUPPORTED_EXTENSIONS or fpath.name.upper().startswith("README"):
                     code_files.append(fpath)
 
         logger.info(

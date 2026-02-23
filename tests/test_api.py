@@ -1,82 +1,59 @@
-"""
-Tests for Repository CRUD endpoints.
-"""
-
 import pytest
-from httpx import AsyncClient, ASGITransport
-from unittest.mock import patch, MagicMock
+from fastapi.testclient import TestClient
 
 from app.main import app
 
+@pytest.fixture(scope="module")
+def client():
+    with TestClient(app) as c:
+        yield c
 
-@pytest.fixture
-def anyio_backend():
-    return "asyncio"
-
-
-@pytest.mark.anyio
-async def test_health_check():
+def test_health_check(client):
     """GET /api/v1/health should return healthy status."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.get("/api/v1/health")
+    response = client.get("/api/v1/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] in ("healthy", "degraded")
     assert "version" in data
 
 
-@pytest.mark.anyio
-async def test_root_redirect():
+def test_root_redirect(client):
     """GET / should return welcome message."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.get("/")
+    response = client.get("/")
     assert response.status_code == 200
     data = response.json()
     assert "CodeQuery" in data["message"]
 
 
-@pytest.mark.anyio
-async def test_create_repository_invalid_url():
+def test_create_repository_invalid_url(client):
     """POST /api/v1/repositories with non-GitHub URL should fail."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.post(
-            "/api/v1/repositories",
-            json={
-                "repo_url": "https://gitlab.com/user/repo",
-                "branch": "main",
-            },
-        )
+    response = client.post(
+        "/api/v1/repositories",
+        json={
+            "repo_url": "https://gitlab.com/user/repo",
+            "branch": "main",
+        },
+    )
     assert response.status_code == 422  # Validation error
 
 
-@pytest.mark.anyio
-async def test_create_repository_missing_url():
+def test_create_repository_missing_url(client):
     """POST /api/v1/repositories without repo_url should fail."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.post(
-            "/api/v1/repositories",
-            json={"branch": "main"},
-        )
+    response = client.post(
+        "/api/v1/repositories",
+        json={"branch": "main"},
+    )
     assert response.status_code == 422
 
 
-@pytest.mark.anyio
-async def test_get_repository_not_found():
+def test_get_repository_not_found(client):
     """GET /api/v1/repositories/99999 should return 404."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.get("/api/v1/repositories/99999")
+    response = client.get("/api/v1/repositories/99999")
     assert response.status_code == 404
 
 
-@pytest.mark.anyio
-async def test_delete_repository_not_found():
+def test_delete_repository_not_found(client):
     """DELETE /api/v1/repositories/99999 should return 404."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        response = await client.delete("/api/v1/repositories/99999")
+    response = client.delete("/api/v1/repositories/99999")
     assert response.status_code == 404
+

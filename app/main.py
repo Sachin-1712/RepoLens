@@ -11,10 +11,13 @@ from app.config import settings
 from app.database import engine, Base
 
 
+from sqlalchemy import text
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Create tables on startup (dev convenience; use Alembic in prod)."""
     async with engine.begin() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
     yield
 
