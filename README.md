@@ -68,8 +68,8 @@ If you have sufficient RAM and storage, you can enable advanced services using D
   ```bash
   docker compose --profile llm up --build -d
   
-  # Pull the model once after it's started:
-  docker exec -it codequery-ollama ollama pull mistral
+  # Pull the tiny model once after it's started:
+  docker exec -it codequery-ollama ollama pull qwen2.5:0.5b
   ```
 
 * **Full Mode (All Services):**
@@ -155,8 +155,11 @@ curl -X POST http://localhost:8000/api/v1/repositories/1/questions \
 │   └── tasks/               # Celery background tasks
 │       └── analysis.py      # Full analysis pipeline
 ├── tests/
-│   ├── test_api.py
-│   └── test_services.py
+│   ├── test_api.py          # CRUD & Mocking tests
+│   ├── test_services.py     # Chunk extraction tests
+│   ├── test_qa_engine.py    # LLM prompt generation tests
+│   ├── test_ingestion.py    # Git file discovery tests
+│   └── conftest.py          # Pytest fixtures
 ├── alembic/                 # Database migrations
 ├── docker-compose.yml
 ├── Dockerfile
@@ -195,7 +198,7 @@ docker exec -it codequery-api alembic upgrade head
 | Component | Model | Cost | Dimension |
 |-----------|-------|------|-----------|
 | **Embeddings** | `all-MiniLM-L6-v2` (sentence-transformers) | Free | 384 |
-| **LLM** | Mistral via Ollama | Free (local) | – |
+| **LLM** | `qwen2.5:0.5b` via Ollama | Free (local) | – |
 
 > To switch to OpenAI, set `OPENAI_API_KEY` in `.env`.
 

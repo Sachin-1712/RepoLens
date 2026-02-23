@@ -57,3 +57,20 @@ def test_delete_repository_not_found(client):
     response = client.delete("/api/v1/repositories/99999")
     assert response.status_code == 404
 
+
+def test_list_repositories(client):
+    """GET /api/v1/repositories should return a list."""
+    response = client.get("/api/v1/repositories")
+    assert response.status_code == 200
+    data = response.json()
+    assert "total" in data
+    assert "repositories" in data
+    assert isinstance(data["repositories"], list)
+
+def test_update_repository_not_found(client):
+    """PUT /api/v1/repositories/99999 should return 404."""
+    response = client.put(
+        "/api/v1/repositories/99999",
+        json={"action": "reanalyze"}
+    )
+    assert response.status_code == 404
