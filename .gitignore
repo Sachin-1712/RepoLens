@@ -46,3 +46,27 @@ alembic/versions/__pycache__/
 *.pt
 *.bin
 .cache/
+
+# LaTeX build files
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+
+# Ignore all PDFs except the required API Documentation
+*.pdf
+!API_Documentation.pdf
+
+# LaTeX files
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+
+# Ignore compiled PDFs except the required API Documentation
+*.pdf
+!API_Documentation.pdf

@@ -4,6 +4,11 @@
 
 > COMP3011 – Web Services and Web Data | Sachin Sindhe
 
+### 🎓 Submission Documents
+- 📄 **API Documentation:** [`API_Documentation.pdf`](./API_Documentation.pdf) (Exported from Swagger UI, ensure to place in root before submission)
+- 📝 **Technical Report:** [`main.tex`](./main.tex) (LaTeX Source)
+- 📊 **Presentation Slides:** (Ensure to place `.pptx` in root before submission)
+
 ---
 
 ## 🏗️ Architecture
