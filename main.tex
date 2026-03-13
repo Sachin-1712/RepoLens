@@ -82,7 +82,7 @@ SQLAlchemy 2.0 (async) was used as the ORM, with Alembic for migrations.
 To avoid paid APIs by default and support offline usage:
 \begin{itemize}[leftmargin=1.2em]
   \item \textbf{Embeddings:} HuggingFace sentence-transformers \texttt{all-MiniLM-L6-v2} produces 384-dimensional embeddings for code chunks.
-  \item \textbf{Optional LLM:} Ollama can be enabled to run a small local model (\texttt{qwen2.5:0.5b}) for grounded answer generation.
+  \item \textbf{Optional LLM:} Ollama can be enabled to run a small local model (\texttt{mistral}) for grounded answer generation.
 \end{itemize}
 The system is designed so that Lightweight Mode does not require the LLM. When the LLM is unavailable, the Q\&A endpoint returns a clear service-unavailable outcome but still provides retrieved sources as evidence.
 
@@ -194,7 +194,7 @@ In accordance with University guidance, generative AI tools (specifically Google
 \begin{itemize}[leftmargin=1.2em]
   \item \textbf{Concept Exploration \& Alternative Architectures:} GenAI was used extensively to evaluate and pivot between different design choices, such as contrasting a pure FastAPI setup versus incorporating Celery for async ingestion, and designing the innovative ``Lightweight Mode'' fallback to ensure the system is deployable on constrained hardware without crashing.
   \item \textbf{Data Structure \& RAG Prototyping:} AI tools assisted in designing the PostgreSQL \texttt{pgvector} schema and prototyping the semantic retrieval pipeline, allowing me to focus on curating the high-level logic and cutting-edge database architecture.
-  \item \textbf{Author Responsibility:} While AI guided the creative conception of cutting-edge architectural patterns, all final design decisions, API routing, data modelling, and the \texttt{pytest} validation suite were verified and synthesised independently to meet coursework objectives.
+  \item \textbf{Responsibility:} While AI guided the creative conception of cutting-edge architectural patterns, all final design decisions, API routing, data modelling, and the \texttt{pytest} validation suite were verified and synthesised independently to meet coursework objectives.
 \end{itemize}
 
 These advanced architectural explorations firmly ground the project in modern, state-of-the-art backend practices. Thoughtful analysis of this usage is evident in the included logs. Examples of exported conversation logs demonstrating this creative, high-level structural usage are attached as supplementary material.

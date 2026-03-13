@@ -5,23 +5,26 @@
 > COMP3011 – Web Services and Web Data | Sachin Sindhe
 
 ### 🎓 Submission Documents
-- 📄 **API Documentation:** [`API_Documentation.pdf`](./api-docs.pdf) (Exported from Swagger UI, ensure to place in root before submission)
-- 📝 **Technical Report:** [`main.tex`](./main.tex) (LaTeX Source)
-- 📊 **Presentation Slides:** (Ensure to place `.pptx` in root before submission)
+- 📄 **API Documentation:** [`api-docs.pdf`](./api-docs.pdf) (Exported from Swagger UI)
+- 📝 **Technical Report:** [`technical-report.pdf`](./technical-report.pdf) (Compiled report)
+- 🤖 **GenAI Logs:** [`genai-conversation-logs.pdf`](./genai-conversation-logs.pdf) (Appendix)
+- 📊 **Presentation Slides:** [`slides.pptx`](./slides.pptx)
+
+*(Ensure all files are placed in the root directory before final submission)*
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-Client (Postman / Frontend)
+Client (Postman / Frontend / Swagger)
     │  HTTP/JSON
     ▼
 ┌─────────────────────────┐
 │  FastAPI (async)        │ ← API Layer
-│  ├── /repositories      │
-│  ├── /questions         │
-│  └── /analysis          │
+│  ├── /api/v1/repositories
+│  ├── /api/v1/questions
+│  └── /api/v1/analysis   │
 └────────┬────────────────┘
          │
   ┌──────▼──────┐    ┌──────────────┐
@@ -35,180 +38,137 @@ Client (Postman / Frontend)
                      └──────────────┘
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Clean Laptop Execution)
 
 ### Prerequisites
 - Docker & Docker Compose
+- Git
+- Internet connection (to download Docker images and clone Git repositories)
 
 ### 1. Clone & Configure
-
 ```bash
-git clone <your-repo-url>
-cd codequery-api
-cp .env.example .env   # Edit if needed
+git clone <repository-url>
+cd <repository-directory>
+cp .env.example .env
 ```
+*(The defaults in `.env` are sufficient for local testing).*
 
-### 2. Start Services (Lightweight Mode by Default)
-
-CodeQuery is configured to run in **Lightweight Mode** by default (< 20GB storage footprint). This runs only the API and PostgreSQL Database. Ingestion is handled natively within the API.
+### 2. Start Services (Lightweight Mode)
+CodeQuery defaults to **Lightweight Mode** (< 20GB storage footprint), which runs only the FastAPI server and PostgreSQL Database. Ingestion happens natively within the API process.
 
 ```bash
-# Starts API + DB only
+# Starts the "api" and "db" services in the background
 docker compose up --build -d
 ```
 
-**⚠️ Warning on Storage Limits:** In `Lightweight Mode`, please start by testing ingestion on tiny repositories (e.g., https://github.com/octocat/Hello-World) to prevent memory blocks.
-
-### 3. Optional Advanced Profiles
-If you have sufficient RAM and storage, you can enable advanced services using Docker Compose profiles.
-
-* **Async Mode (Celery + Redis):**
-  Offloads ingestion to a background worker queue.
-  ```bash
-  docker compose --profile async up --build -d
-  ```
-
-* **LLM Mode (Local Ollama LLM):**
-  Allows Q&A inference locally.
-  ```bash
-  docker compose --profile llm up --build -d
-  
-  # Pull the tiny model once after it's started:
-  docker exec -it codequery-ollama ollama pull qwen2.5:0.5b
-  ```
-
-* **Full Mode (All Services):**
-  ```bash
-  docker compose --profile async --profile llm up --build -d
-  ```
-
-### 4. Explore the API
-
+### 3. Verify Health and Database
+Ensure the application is running:
+- **Health Check:** `curl http://localhost:8000/api/v1/health`
 - **Swagger UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
-- **ReDoc:** [http://localhost:8000/redoc](http://localhost:8000/redoc)
-- **Health Check:** [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
 
----
-
-## 📡 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/repositories` | Add a repository for analysis |
-| `GET` | `/api/v1/repositories` | List all repositories |
-| `GET` | `/api/v1/repositories/{id}` | Get repository details |
-| `PUT` | `/api/v1/repositories/{id}` | Update / re-analyse |
-| `DELETE` | `/api/v1/repositories/{id}` | Delete repository |
-| `POST` | `/api/v1/repositories/{id}/questions` | Ask a question |
-| `GET` | `/api/v1/repositories/{id}/questions` | Question history |
-| `GET` | `/api/v1/questions/{id}` | Get single question |
-| `DELETE` | `/api/v1/questions/{id}` | Delete question |
-| `GET` | `/api/v1/repositories/{id}/analysis` | Analysis status |
-| `GET` | `/api/v1/repositories/{id}/statistics` | Code statistics |
-| `GET` | `/api/v1/health` | Health check |
-
-### Example: Add a Repository
-
+*Note: The API automatically creates database tables on startup (via SQLAlchemy `Base.metadata.create_all`). If you need to manually apply Alembic migrations, use `docker compose exec`:*
 ```bash
-curl -X POST http://localhost:8000/api/v1/repositories \
-  -H "Content-Type: application/json" \
-  -d '{
-    "repo_url": "https://github.com/pallets/flask",
-    "branch": "main",
-    "name": "Flask"
-  }'
+docker compose exec api alembic upgrade head
 ```
 
-### Example: Ask a Question
+---
 
+## 🎯 Manual Demo Steps (For Viva)
+
+Follow these steps via Swagger UI ([http://localhost:8000/docs](http://localhost:8000/docs)) to demo the full RAG pipeline:
+
+1. **Create Repository**
+   - Click `POST /api/v1/repositories`
+   - Paste the following tiny test repo:
+     ```json
+     {
+       "repo_url": "https://github.com/octocat/Hello-World",
+       "branch": "master",
+       "name": "Octocat HelloWorld"
+     }
+     ```
+   - **Expected Status:** `202 Accepted`
+
+2. **Check Analysis Status**
+   - Click `GET /api/v1/repositories/{repo_id}/analysis`
+   - Enter `repo_id`: `1`
+   - Click Execute until `"status": "completed"`
+   - **Expected Status:** `200 OK`
+
+3. **Ask a Question**
+   - Click `POST /api/v1/repositories/{repo_id}/questions`
+   - Enter `repo_id`: `1`
+   - Paste the JSON payload:
+     ```json
+     {
+       "question": "What does the README say?"
+     }
+     ```
+   - **Expected Status:** `200 OK` (Or `503 Service Unavailable` if the local LLM is disabled, which confirms the lightweight fallback mechanism works).
+
+*Note: See full list of status codes including `204 No Content`, `404 Not Found`, and `422 Unprocessable Entity` in the `/docs` UI for edge cases.*
+
+---
+
+## 📡 API Endpoints List
+
+All endpoints are prefixed with `/api/v1`.
+
+| Method   | Endpoint                                   | Description                               |
+|----------|--------------------------------------------|-------------------------------------------|
+| `POST`   | `/repositories`                            | Add a new repository and queue analysis   |
+| `GET`    | `/repositories`                            | List all repositories                     |
+| `GET`    | `/repositories/{repo_id}`                  | Get repository details                    |
+| `PUT`    | `/repositories/{repo_id}`                  | Update / re-analyse a repository          |
+| `DELETE` | `/repositories/{repo_id}`                  | Delete a repository and associated data   |
+| `POST`   | `/repositories/{repo_id}/questions`        | Ask a question about a repository         |
+| `GET`    | `/repositories/{repo_id}/questions`        | Get question history for a repository     |
+| `GET`    | `/questions/{question_id}`                 | Get a single question with full answer    |
+| `DELETE` | `/questions/{question_id}`                 | Delete a question                         |
+| `GET`    | `/repositories/{repo_id}/analysis`         | Get analysis job status                   |
+| `GET`    | `/repositories/{repo_id}/statistics`       | Get code statistics (functions, classes)  |
+| `GET`    | `/health`                                  | Service health check                      |
+
+*(No auth headers are required for local testing, though `API_KEY` authentication setup is supported in `config.py`)*
+
+---
+
+## ⚙️ Optional Advanced Modes
+
+If you have sufficient system resources (RAM and storage), you can enable advanced capabilities via Docker Compose profiles.
+
+### Async Mode
+Offloads ingestion to a background Celery worker queue, powered by Redis.
 ```bash
-curl -X POST http://localhost:8000/api/v1/repositories/1/questions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "How is routing implemented?"
-  }'
+docker compose --profile async up --build -d
 ```
 
----
-
-## 🗂️ Project Structure
-
-```
-├── app/
-│   ├── __init__.py
-│   ├── main.py              # FastAPI entry point
-│   ├── config.py            # Pydantic Settings
-│   ├── database.py          # Async SQLAlchemy engine
-│   ├── api/                 # REST endpoints
-│   │   ├── repositories.py  # CRUD for repos
-│   │   ├── questions.py     # Q&A endpoints
-│   │   └── analysis.py      # Analysis status & stats
-│   ├── models/              # SQLAlchemy ORM models
-│   │   ├── repository.py
-│   │   ├── code_chunk.py
-│   │   ├── question.py
-│   │   └── analysis_job.py
-│   ├── schemas/             # Pydantic request/response
-│   │   ├── repository.py
-│   │   ├── question.py
-│   │   └── analysis.py
-│   ├── services/            # Business logic
-│   │   ├── ingestion.py     # Git clone + file discovery
-│   │   ├── chunking.py      # Code parsing & chunking
-│   │   ├── embedding.py     # Vector embeddings (free model)
-│   │   └── qa_engine.py     # RAG pipeline
-│   └── tasks/               # Celery background tasks
-│       └── analysis.py      # Full analysis pipeline
-├── tests/
-│   ├── test_api.py          # CRUD & Mocking tests
-│   ├── test_services.py     # Chunk extraction tests
-│   ├── test_qa_engine.py    # LLM prompt generation tests
-│   ├── test_ingestion.py    # Git file discovery tests
-│   └── conftest.py          # Pytest fixtures
-├── alembic/                 # Database migrations
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-└── .env
-```
-
----
-
-## 🧪 Running Tests
-
+### LLM Mode (Local Inference)
+Enables the local Ollama container to answer questions.
 ```bash
-# Run pytest in the API container:
-docker compose exec api pytest -q
+# 1. Start the LLM profile
+docker compose --profile llm up --build -d
 
-# Or locally with a virtual environment
-pytest tests/ -v --cov=app
+# 2. Pull the model (mistral) inside the ollama container
+docker compose exec ollama ollama pull mistral
 ```
+*(The exact model used in `app/config.py` is `mistral`. If the Ollama service is unavailable, questions will return a clean `503` error with the retrieved source snippets, confirming the RAG retrieval still functions.)*
 
 ---
 
-## 🔧 Database Migrations
+## 🧪 Testing
 
+The test suite covers Git ingestion, RAG prompt generation, code chunking, and mock API tests.
+
+To run the full suite using `pytest`:
 ```bash
-# Generate a new migration
-docker exec -it codequery-api alembic revision --autogenerate -m "description"
-
-# Apply migrations
-docker exec -it codequery-api alembic upgrade head
+# Execute within the running `api` container:
+docker compose exec api pytest tests/ -v
 ```
 
 ---
 
-## 🤖 AI Models Used
+## ⚠️ Important Notes
 
-| Component | Model | Cost | Dimension |
-|-----------|-------|------|-----------|
-| **Embeddings** | `all-MiniLM-L6-v2` (sentence-transformers) | Free | 384 |
-| **LLM** | `qwen2.5:0.5b` via Ollama | Free (local) | – |
-
-> To switch to OpenAI, set `OPENAI_API_KEY` in `.env`.
-
----
-
-## 📄 License
-
-MIT License – Built for COMP3011 coursework.
+- **Storage Warning:** Ingestion stores cloned repositories locally in `/tmp/codequery_repos` and text embeddings in the PostgreSQL database. **Please use tiny repositories (like `octocat/Hello-World`) to prevent disk usage spikes.**
+- **Version Guarantee:** The current commit branch `main` corresponds strictly to the final runnable viva version.
