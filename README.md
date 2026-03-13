@@ -10,7 +10,6 @@
 - 🤖 **GenAI Logs:** [`genai-conversation-logs.pdf`](./genai-conversation-logs.pdf) (Appendix)
 - 📊 **Presentation Slides:** [`slides.pptx`](./slides.pptx)
 
-*(Ensure all files are placed in the root directory before final submission)*
 
 ---
 
@@ -38,7 +37,7 @@ Client (Postman / Frontend / Swagger)
                      └──────────────┘
 ```
 
-## 🚀 Quick Start (Clean Laptop Execution)
+## 🚀 Quick Start 
 
 ### Prerequisites
 - Docker & Docker Compose
@@ -73,7 +72,7 @@ docker compose exec api alembic upgrade head
 
 ---
 
-## 🎯 Manual Demo Steps (For Viva)
+## 🎯 Manual Demo Steps 
 
 Follow these steps via Swagger UI ([http://localhost:8000/docs](http://localhost:8000/docs)) to demo the full RAG pipeline:
 
